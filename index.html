@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AI 简历助手 - 智能优化×面试模拟</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #818CF8;
+      --primary-dark: #3730A3;
+      --secondary: #F59E0B;
+      --bg: #F0F2F5;
+      --card-bg: #FFFFFF;
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+      --success: #10B981;
+      --danger: #EF4444;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    #root { min-height: 100vh; }
+
+    /* ===== Scrollbar ===== */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 4px; }
+
+    /* ===== Shared ===== */
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px 16px 100px;
+      min-height: 100vh;
+    }
+    .page.wide { max-width: 640px; }
+
+    h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+    h2 { font-size: 22px; font-weight: 700; }
+    h3 { font-size: 18px; font-weight: 600; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--primary), #7C3AED);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 28px; border-radius: 12px; font-size: 15px; font-weight: 600;
+      border: none; cursor: pointer; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #7C3AED);
+      color: #fff; box-shadow: 0 4px 14px rgba(79,70,229,0.35);
+    }
+    .btn-primary:hover { box-shadow: 0 6px 20px rgba(79,70,229,0.45); }
+    .btn-secondary {
+      background: var(--card-bg); color: var(--primary);
+      border: 2px solid var(--primary-light);
+    }
+    .btn-block { width: 100%; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .card {
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 20px;
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-1px); }
+
+    .input, .textarea {
+      width: 100%; padding: 12px 16px; border: 2px solid #E2E8F0;
+      border-radius: var(--radius-sm); font-size: 14px;
+      transition: border-color 0.2s; background: #F8FAFC;
+      font-family: inherit;
+    }
+    .input:focus, .textarea:focus {
+      outline: none; border-color: var(--primary-light); background: #fff;
+    }
+    .textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+    .label { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: block; }
+    .hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .badge {
+      display: inline-block; padding: 4px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+    .badge-primary { background: #EEF2FF; color: var(--primary); }
+    .badge-success { background: #D1FAE5; color: #065F46; }
+    .badge-warning { background: #FEF3C7; color: #92400E; }
+    .badge-danger { background: #FEE2E2; color: #991B1B; }
+
+    /* ===== Bottom Tab Nav ===== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--card-bg); border-top: 1px solid #E2E8F0;
+      display: flex; z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 2px; padding: 8px 0 6px; font-size: 11px; color: var(--text-muted);
+      cursor: pointer; transition: color 0.2s; border: none; background: none;
+    }
+    .nav-item svg { width: 22px; height: 22px; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item.active svg { stroke-width: 2.5; }
+    .nav-item:active { opacity: 0.7; }
+
+    /* ===== Home Hero ===== */
+    .hero {
+      text-align: center; padding: 40px 0 32px;
+    }
+    .hero h1 { font-size: 32px; margin-bottom: 12px; }
+    .hero p { color: var(--text-secondary); font-size: 15px; line-height: 1.6; max-width: 320px; margin: 0 auto; }
+    .hero-icon {
+      width: 72px; height: 72px; margin: 0 auto 20px;
+      background: linear-gradient(135deg, #EEF2FF, #E0E7FF);
+      border-radius: 24px; display: flex; align-items: center; justify-content: center;
+    }
+    .hero-icon svg { width: 36px; height: 36px; color: var(--primary); }
+
+    .features-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+
+    .feature-card {
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 20px;
+      display: flex; gap: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+    }
+    .feature-card:active { transform: scale(0.98); }
+    .feature-card:hover { border-color: var(--primary-light); }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .feature-icon svg { width: 24px; height: 24px; color: #fff; }
+    .feature-body { flex: 1; }
+    .feature-body h3 { font-size: 16px; margin-bottom: 4px; }
+    .feature-body p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+    .feature-arrow { color: var(--text-muted); display: flex; align-items: center; }
+
+    /* ===== Stats Banner ===== */
+    .stats-banner {
+      display: flex; justify-content: space-around; margin-top: 24px;
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 20px; text-align: center;
+    }
+    .stat-item h4 { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .stat-item p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ===== Tags ===== */
+    .tag-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      padding: 6px 14px; border-radius: 20px; font-size: 13px;
+      background: #F1F5F9; color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+      border: 1.5px solid transparent;
+    }
+    .tag.active { background: #EEF2FF; color: var(--primary); border-color: var(--primary-light); }
+    .tag:active { transform: scale(0.95); }
+
+    /* ===== Typing Animation ===== */
+    .typing-dots::after {
+      content: ''; animation: dots 1.2s steps(4) infinite;
+    }
+    @keyframes dots {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
+
+    /* ===== Progress Bar ===== */
+    .progress-bar {
+      height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 4px; transition: width 0.8s ease;
+      background: linear-gradient(90deg, var(--primary), #7C3AED);
+    }
+
+    /* ===== Match Score Ring ===== */
+    .score-ring {
+      width: 120px; height: 120px; margin: 0 auto;
+      position: relative;
+    }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-ring .bg { fill: none; stroke: #E2E8F0; stroke-width: 8; }
+    .score-ring .fg {
+      fill: none; stroke-width: 8; stroke-linecap: round;
+      transition: stroke-dashoffset 1s ease;
+    }
+    .score-value {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 32px; font-weight: 800;
+    }
+    .score-label {
+      position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+      font-size: 12px; color: var(--text-muted);
+    }
+
+    /* ===== Interview Chat ===== */
+    .chat-container {
+      display: flex; flex-direction: column; gap: 16px; margin: 16px 0;
+    }
+    .chat-bubble {
+      max-width: 85%; padding: 14px 18px; border-radius: 16px;
+      font-size: 14px; line-height: 1.6; animation: fadeIn 0.3s ease;
+    }
+    .chat-bubble.ai {
+      align-self: flex-start; background: #F1F5F9; color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+    .chat-bubble.user {
+      align-self: flex-end; background: var(--primary); color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-bubble.system {
+      align-self: center; background: #FEF3C7; color: #92400E;
+      font-size: 13px; text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== Share Card ===== */
+    .share-card {
+      width: 340px; padding: 32px 24px; border-radius: 20px;
+      background: linear-gradient(135deg, #1E293B, #334155);
+      color: #fff; text-align: center; margin: 0 auto;
+    }
+    .share-card .score { font-size: 56px; font-weight: 800; }
+    .share-card .title { font-size: 18px; font-weight: 600; margin: 8px 0; }
+    .share-card .subtitle { font-size: 13px; color: #94A3B8; }
+    .share-card .qr-placeholder {
+      width: 80px; height: 80px; background: #fff; border-radius: 12px;
+      margin: 16px auto 0; padding: 8px;
+    }
+    .share-card .qr-placeholder div {
+      width: 100%; height: 100%; background: repeating-conic-gradient(#1E293B 0% 25%, #fff 0% 50%) 50% / 12px 12px;
+      border-radius: 4px;
+    }
+
+    /* ===== Modal ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 200; animation: fadeIn 0.2s ease;
+    }
+    .modal-content {
+      background: #fff; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 480px; max-height: 80vh; overflow-y: auto;
+      padding: 24px 20px 32px; animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-handle {
+      width: 36px; height: 4px; background: #CBD5E1; border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+
+    /* ===== Resume Compare ===== */
+    .diff-view {
+      background: #F8FAFC; border-radius: var(--radius-sm); padding: 16px;
+      font-size: 14px; line-height: 1.7; white-space: pre-wrap;
+    }
+    .diff-view .added { background: #D1FAE5; color: #065F46; }
+    .diff-view .removed { background: #FEE2E2; color: #991B1B; text-decoration: line-through; }
+
+    /* ===== Settings ===== */
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid #F1F5F9;
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-label { font-size: 14px; font-weight: 500; }
+    .setting-desc { font-size: 12px; color: var(--text-muted); }
+
+    /* ===== Toast ===== */
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--text-primary); color: #fff; padding: 12px 24px;
+      border-radius: 12px; font-size: 14px; z-index: 300;
+      animation: slideDown 0.3s ease; max-width: 90%;
+      text-align: center;
+    }
+    @keyframes slideDown {
+      from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    /* ===== Responsive ===== */
+    @media (min-width: 768px) {
+      .page { padding: 40px 24px 100px; }
+      .features-grid { flex-direction: row; flex-wrap: wrap; }
+      .features-grid .feature-card { flex: 1; min-width: 280px; }
+    }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+      text-align: center; padding: 48px 20px;
+    }
+    .empty-state svg { width: 64px; height: 64px; color: var(--text-muted); }
+    .empty-state h3 { margin-top: 16px; color: var(--text-secondary); }
+    .empty-state p { font-size: 14px; color: var(--text-muted); margin-top: 6px; }
+
+    /* ===== Skeleton ===== */
+    .skeleton {
+      background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);
+      background-size: 200% 100%; animation: shimmer 1.5s infinite;
+      border-radius: 8px; height: 16px; margin: 8px 0;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ===== Results section ===== */
+    .result-section { margin-top: 16px; }
+    .result-section h3 { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+
+    .dimension-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    }
+    .dimension-item .dim-label { flex: 1; font-size: 14px; }
+    .dimension-item .dim-bar { flex: 2; height: 6px; background: #E2E8F0; border-radius: 3px; }
+    .dimension-item .dim-fill { height: 100%; border-radius: 3px; }
+    .dimension-item .dim-score { font-size: 14px; font-weight: 600; width: 30px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+<div id="loading" style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px;background:#F0F2F5;color:#64748B;font-family:-apple-system,sans-serif">
+  <div style="width:40px;height:40px;border:3px solid #E2E8F0;border-top-color:#4F46E5;border-radius:50%;animation:spin 1s linear infinite"></div>
+  <div style="font-size:15px">AI 简历助手加载中...</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<script>
+  // Show loading until React renders
+  var rootEl = document.getElementById('root');
+  var loadingEl = document.getElementById('loading');
+  if (rootEl && loadingEl) {
+    // Observer to detect when React renders content
+    var observer = new MutationObserver(function() {
+      if (rootEl.children.length > 0) {
+        loadingEl.style.display = 'none';
+        observer.disconnect();
+      }
+    });
+    observer.observe(rootEl, { childList: true, subtree: true });
+  }
+  // Fallback if React fails after 8 seconds
+  setTimeout(function() {
+    if (loadingEl && loadingEl.style.display !== 'none' && (!rootEl || rootEl.children.length === 0)) {
+      loadingEl.innerHTML = '<div style="text-align:center;padding:20px">' +
+        '<div style="font-size:40px;margin-bottom:12px">&#9888;</div>' +
+        '<div style="font-size:16px;font-weight:600;color:#EF4444;margin-bottom:8px">页面加载失败</div>' +
+        '<div style="font-size:13px;color:#64748B;max-width:280px;line-height:1.6">可能是网络问题导致 React 框架没有加载成功。<br>请检查网络后刷新页面。</div>' +
+        '<button onclick="location.reload()" style="margin-top:16px;padding:10px 28px;border:none;border-radius:10px;background:#4F46E5;color:#fff;font-size:14px;cursor:pointer">刷新重试</button>' +
+        '</div>';
+    }
+  }, 8000);
+</script>
+
+
+  <script>
+window.__REACT_LOADED = false;
+</script>
+<script type="text/javascript">
+if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
+  document.getElementById('loading') && (document.getElementById('loading').innerHTML = 
+    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px;background:#F0F2F5;padding:20px;text-align:center;font-family:-apple-system,sans-serif">' +
+    '<div style="font-size:40px;margin-bottom:8px">&#9888;</div>' +
+    '<div style="font-size:16px;font-weight:600;color:#EF4444;margin-bottom:8px">框架加载失败</div>' +
+    '<div style="font-size:13px;color:#64748B;max-width:300px;line-height:1.6">React 框架未能从 CDN 加载。<br>请确保网络畅通后刷新页面。</div>' +
+    '<button onclick="location.reload()" style="margin-top:16px;padding:10px 28px;border:none;border-radius:10px;background:#4F46E5;color:#fff;font-size:14px;cursor:pointer">刷新重试</button>' +
+    '</div>');
+} else {
+
+        const { useState, useEffect, useRef, useCallback, createContext, useContext, createElement: h } = React;
+
+    // ====================================================================
+    // API Service - DeepSeek Integration
+    // ====================================================================
+    const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+
+    const APIService = {
+      _key: null,
+      _mode: 'demo',
+
+      init() {
+        try {
+          const saved = localStorage.getItem('ds_api_key');
+          if (saved) { this._key = saved; this._mode = 'api'; }
+        } catch(e) {}
+      },
+
+      getKey() { return this._key; },
+      getMode() { return this._mode; },
+
+      setKey(key) {
+        this._key = key;
+        this._mode = key ? 'api' : 'demo';
+        try {
+          if (key) localStorage.setItem('ds_api_key', key);
+          else localStorage.removeItem('ds_api_key');
+        } catch(e) {}
+      },
+
+      clearKey() {
+        this._key = null;
+        this._mode = 'demo';
+        try { localStorage.removeItem('ds_api_key'); } catch(e) {}
+      },
+
+      async chat(messages, options = {}) {
+        if (this._mode !== 'api' || !this._key) {
+          throw new Error('NO_API_KEY');
+        }
+        const resp = await fetch(DEEPSEEK_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + this._key
+          },
+          body: JSON.stringify({
+            model: options.model || 'deepseek-chat',
+            messages: messages,
+            temperature: options.temperature ?? 0.7,
+            max_tokens: options.maxTokens || 4096,
+          })
+        });
+        if (!resp.ok) {
+          let errMsg = 'API 请求失败';
+          try { const err = await resp.json(); errMsg = err.error?.message || errMsg; } catch(e) {}
+          throw new Error(errMsg);
+        }
+        const data = await resp.json();
+        return data.choices[0].message.content;
+      },
+
+      async optimizeResume(resume, jd) {
+        const sysPrompt = '你是一个专业的简历优化顾问。请根据目标岗位要求优化简历，返回 JSON 格式。';
+        const userPrompt = '请分析并优化以下简历。\n\n简历内容：\n' + resume + (jd ? '\n\n目标岗位描述：\n' + jd : '\n\n（无特定岗位，做通用优化）') + '\n\n请严格按照以下 JSON 格式返回（不要包含 markdown 代码块标记），只返回 JSON：\n{"optimized": "优化后的完整简历文本","score": 匹配度分数(0-100的数字),"suggestions": ["建议1", "建议2", "建议3"],"matchedKeywords": ["已有匹配关键词"],"missingKeywords": ["缺失需要补充的关键词"]}';
+        const result = await this.chat([
+          { role: 'system', content: sysPrompt },
+          { role: 'user', content: userPrompt }
+        ], { temperature: 0.3 });
+        return JSON.parse(result.replace(/```json|```/g, '').trim());
+      },
+
+      async evaluateAnswer(question, answer, position) {
+        const sysPrompt = '你一个资深的面试官，擅长评估面试回答并提供建设性反馈。请用中文回复，返回 JSON 格式。';
+        const userPrompt = '岗位：' + (position || '通用') + '\n面试问题：' + question + '\n面试者的回答：' + answer + '\n\n请评估这个回答，严格按照以下 JSON 格式返回（不要 markdown 标记）：\n{"score": 0-100的分数,"strengths": ["优点1", "优点2"],"improvements": ["改进建议1", "改进建议2"],"comment": "综合评价"}';
+        const result = await this.chat([
+          { role: 'system', content: sysPrompt },
+          { role: 'user', content: userPrompt }
+        ], { temperature: 0.3 });
+        return JSON.parse(result.replace(/```json|```/g, '').trim());
+      },
+
+      async matchAnalysis(resume, jd) {
+        const sysPrompt = '你是一个专业的招聘分析顾问。请分析简历与岗位的匹配程度，返回 JSON 格式。';
+        const userPrompt = '请分析以下简历与目标岗位的匹配程度。\n\n简历：\n' + resume + '\n\n岗位描述：\n' + jd + '\n\n请严格按照以下 JSON 格式返回（不要 markdown 标记），各维度分数 0-100：\n{"totalScore": 综合匹配度,"dimensions": {"技术栈匹配": {"score": 分数},"经验匹配": {"score": 分数},"项目匹配": {"score": 分数},"软技能匹配": {"score": 分数},"教育背景": {"score": 分数}},"suggestions": ["改进建议1", "改进建议2"]}';
+        const result = await this.chat([
+          { role: 'system', content: sysPrompt },
+          { role: 'user', content: userPrompt }
+        ], { temperature: 0.3 });
+        return JSON.parse(result.replace(/```json|```/g, '').trim());
+      }
+    };
+    APIService.init();
+
+    // ====================================================================
+    // Color helpers
+    // ====================================================================
+    const scoreColor = (s) => {
+      if (s >= 80) return '#10B981';
+      if (s >= 60) return '#F59E0B';
+      return '#EF4444';
+    };
+
+    // ====================================================================
+    // Demo/Simulation Data (fallback when no API key)
+    // ====================================================================
+    const INTERVIEW_QUESTIONS = {
+      '前端开发': [
+        '请自我介绍一下，重点说说你的技术栈和项目经验。',
+        'React 中 useState 和 useRef 的区别是什么？分别在什么场景下使用？',
+        '请解释一下浏览器从输入 URL 到页面渲染的完整过程。',
+        '前端性能优化你有哪些实践？如何衡量优化效果？',
+        '请说说你对闭包的理解，以及日常开发中闭包的应用场景。',
+      ],
+      '后端开发': [
+        '请自我介绍一下你的技术背景和项目经验。',
+        '请解释一下 RESTful API 的设计原则，你做过哪些实践？',
+        '数据库索引的原理是什么？如何优化慢查询？',
+        '在高并发场景下，你会如何设计一个秒杀系统？',
+        '谈谈你对微服务架构的理解，以及它带来的挑战。',
+      ],
+      '产品经理': [
+        '请自我介绍一下，为什么想做产品经理？',
+        '描述一个你做得最成功的产品功能，从需求分析到上线的完整过程。',
+        '如果两个核心指标冲突了（比如用户体验和商业化），你怎么决策？',
+        '你怎么做用户调研？请举一个具体的例子。',
+        '说说你对 AI 产品方向的理解，未来 3 年最大的机会在哪里？',
+      ],
+      '数据分析': [
+        '请自我介绍一下你的数据分析经验。',
+        'AB 测试的统计学原理是什么？需要注意哪些坑？',
+        '你如何评估一个推荐系统的效果？用哪些指标？',
+        '请举例说明你通过数据分析推动业务决策的经历。',
+        'SQL 中窗口函数有哪些常见用法？请举例。',
+      ],
+      '市场营销': [
+        '请自我介绍一下你的营销经验。',
+        '如果给你 10 万预算做新品推广，你会怎么分配？',
+        '你怎么衡量一次营销活动的 ROI？',
+        '聊聊你对小红书/抖音内容营销的理解。',
+        '你怎么做用户分层和精准营销？',
+      ],
+      '通用': [
+        '请先做个自我介绍吧。',
+        '你为什么想来我们公司？你对我们了解多少？',
+        '说说你过去工作中遇到的最大挑战，你是怎么解决的？',
+        '你的职业规划是什么？未来 3 年想达到什么水平？',
+        '你有什么想问我们的吗？',
+      ]
+    };
+
+    const simulateResumeOptimize = (resume, jd) => {
+      const hasProject = resume.includes('项目') || resume.includes('负责') || resume.includes('参与');
+      const hasMetrics = /\d+%/.test(resume) || /\d+万/.test(resume);
+      const allKeywords = ['沟通能力', '团队协作', '数据分析', '项目管理', '用户思维'];
+      const matched = allKeywords.filter(k => resume.includes(k));
+      const missingKws = allKeywords.filter(k => !resume.includes(k));
+      let suggestions = [];
+      if (!hasProject) suggestions.push('增加量化项目经验，用 STAR 法则描述');
+      if (!hasMetrics) suggestions.push('加入数据指标，如"提升转化率 30%"、"覆盖 10 万用户"等');
+      suggestions.push('增加个人亮点/核心竞争力的总结段落');
+      const matchScore = Math.min(95, 55 + (hasProject ? 10 : 0) + (hasMetrics ? 10 : 0) + matched.length * 4);
+      let optimized = resume;
+      if (!hasMetrics && matchScore < 75) optimized += '\n\n关键成果:\n• 主导 XX 项目，提升核心指标 35%\n• 覆盖用户 50 万+，年营收增长 200 万';
+      if (!hasProject) optimized += '\n\n项目经历:\n• 核心业务系统 | 2024.06 - 2025.01\n  独立负责核心模块设计与开发，性能提升 40%';
+      return { optimized, score: matchScore, suggestions, matchedKeywords: matched, missingKeywords: missingKws };
+    };
+
+    const simulateInterviewScore = (question, answer) => {
+      const hasStructure = /首先|其次|最后|第一|第二|第三/.test(answer);
+      const hasExample = /例如|比如|案例|项目|做过/.test(answer);
+      const hasData = /\d+/.test(answer);
+      let baseScore = 40;
+      if (answer.length > 30) baseScore += 10;
+      if (answer.length > 80) baseScore += 10;
+      if (hasStructure) baseScore += 15;
+      if (hasExample) baseScore += 15;
+      if (hasData) baseScore += 10;
+      const finalScore = Math.min(95, baseScore);
+      let strengths = [], improvements = [];
+      if (hasStructure) strengths.push('回答有逻辑结构，层次分明'); else improvements.push('建议使用"首先、其次、最后"组织回答');
+      if (hasExample) strengths.push('有具体案例支撑，说服力强'); else improvements.push('建议结合具体项目或案例说明');
+      if (hasData) strengths.push('使用了数据支撑观点'); else improvements.push('可以加入量化数据增强说服力');
+      if (answer.length > 60) strengths.push('回答内容充实'); else improvements.push('回答可以更详细一些');
+      const comment = finalScore >= 85 ? '非常优秀！' : finalScore >= 70 ? '表现不错！' : finalScore >= 55 ? '有一定基础' : '需要加强';
+      return { score: finalScore, strengths, improvements, comment };
+    };
+
+    const simulateMatchAnalysis = (resume, jd) => {
+      const r = (resume || '').toLowerCase();
+      const dims = { '技术栈匹配': 0, '经验匹配': 0, '项目匹配': 0, '软技能匹配': 0, '教育背景': 0 };
+      const techs = ['react','vue','python','java','sql','docker','git','typescript','javascript','node','mysql'];
+      const jdTechs = techs.filter(t => jd.toLowerCase().includes(t));
+      const resumeTechs = techs.filter(t => r.includes(t));
+      const techMatch = jdTechs.length > 0 ? (resumeTechs.filter(t => jdTechs.includes(t)).length / jdTechs.length) * 100 : 60;
+      dims['技术栈匹配'] = Math.min(95, Math.round(techMatch));
+      dims['经验匹配'] = Math.round(65 + Math.random() * 25);
+      dims['项目匹配'] = (r.includes('项目') || r.includes('负责')) ? Math.round(65 + Math.random() * 30) : Math.round(35 + Math.random() * 20);
+      const softSkills = ['沟通','协作','团队','管理','创新','执行力'];
+      const matchSoft = softSkills.filter(s => r.includes(s) && jd.toLowerCase().includes(s)).length;
+      const allJdSoft = softSkills.filter(s => jd.toLowerCase().includes(s));
+      dims['软技能匹配'] = allJdSoft.length > 0 ? Math.round((matchSoft / allJdSoft.length) * 100) : 70;
+      dims['教育背景'] = /本科|硕士|博士/.test(r) ? 85 : 60;
+      const weights = { '技术栈匹配': 30, '经验匹配': 25, '项目匹配': 20, '软技能匹配': 15, '教育背景': 10 };
+      const total = Object.keys(dims).reduce((sum, k) => sum + dims[k] * weights[k] / 100, 0);
+      const finalScore = Math.min(100, Math.max(20, Math.round(total)));
+      const dimsResult = {};
+      Object.keys(dims).forEach(k => { dimsResult[k] = { score: dims[k] }; });
+      const suggestions = Object.keys(dims).filter(k => dims[k] < 60).map(k => k + '需要提升');
+      if (suggestions.length === 0) suggestions.push('简历与岗位匹配度很高，建议在面试中重点突出项目细节');
+      return { totalScore: finalScore, dimensions: dimsResult, suggestions };
+    };
+
+    // ====================================================================
+    // App Context
+    // ====================================================================
+    const AppContext = createContext();
+
+    // ====================================================================
+    // Toast
+    // ====================================================================
+    const Toast = ({ message, onClose }) => {
+      useEffect(() => { const t = setTimeout(onClose, 2500); return () => clearTimeout(t); }, []);
+      return h('div', { className: 'toast', onClick: onClose }, message);
+    };
+
+    // ====================================================================
+    // Icons (lucide-style via SVG)
+    // ====================================================================
+    const Icons = {
+      home: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('path', { d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }), h('polyline', { points: '9 22 9 12 15 12 15 22' })),
+      fileText: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }), h('polyline', { points: '14 2 14 8 20 8' }), h('line', { x1: '16', y1: '13', x2: '8', y2: '13' }), h('line', { x1: '16', y1: '17', x2: '8', y2: '17' })),
+      messageSquare: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' })),
+      target: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('circle', { cx: '12', cy: '12', r: '10' }), h('circle', { cx: '12', cy: '12', r: '6' }), h('circle', { cx: '12', cy: '12', r: '2' })),
+      settings: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('circle', { cx: '12', cy: '12', r: '3' }), h('path', { d: 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' })),
+      share: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('path', { d: 'M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8' }), h('polyline', { points: '16 6 12 2 8 6' }), h('line', { x1: '12', y1: '2', x2: '12', y2: '15' })),
+      sparkles: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('path', { d: 'M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z' }), h('path', { d: 'M18 14l.5 1.5L20 16l-1.5.5-.5 1.5-.5-1.5L16 16l1.5-.5z' }), h('path', { d: 'M6 5l.5 1.5L8 7l-1.5.5L6 9l-.5-1.5L4 7l1.5-.5z' })),
+      arrowRight: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('line', { x1: '5', y1: '12', x2: '19', y2: '12' }), h('polyline', { points: '12 5 19 12 12 19' })),
+      check: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('polyline', { points: '20 6 9 17 4 12' })),
+      close: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('line', { x1: '18', y1: '6', x2: '6', y2: '18' }), h('line', { x1: '6', y1: '6', x2: '18', y2: '18' })),
+      bot: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('rect', { x: '3', y: '11', width: '18', height: '10', rx: '2' }), h('circle', { cx: '12', cy: '5', r: '2' }), h('path', { d: 'M12 7v4' }), h('line', { x1: '8', y1: '16', x2: '8', y2: '16' }), h('line', { x1: '16', y1: '16', x2: '16', y2: '16' })),
+      lightbulb: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('path', { d: 'M9 18h6' }), h('path', { d: 'M10 22h4' }), h('path', { d: 'M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14' })),
+      copy: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('rect', { x: '9', y: '9', width: '13', height: '13', rx: '2', ry: '2' }), h('path', { d: 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1' })),
+      download: h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }), h('polyline', { points: '7 10 12 15 17 10' }), h('line', { x1: '12', y1: '15', x2: '12', y2: '3' })),
+    };
+
+    // ====================================================================
+    // Page: Home
+    // ====================================================================
+    const HomePage = ({ onNavigate }) => {
+      const features = [
+        { id: 'resume', color: '#4F46E5', bg: '#EEF2FF', icon: Icons.fileText, title: 'AI 简历优化', desc: '上传简历 + 岗位描述，AI 一键优化，突出亮点、匹配关键词' },
+        { id: 'interview', color: '#7C3AED', bg: '#F5F3FF', icon: Icons.messageSquare, title: 'AI 面试模拟', desc: '针对你的岗位进行模拟面试，AI 评分并给出改进建议' },
+        { id: 'match', color: '#F59E0B', bg: '#FFFBEB', icon: Icons.target, title: '岗位匹配度分析', desc: '输入简历和岗位描述，AI 精准分析匹配度，找出差距' },
+      ];
+      return h('div', { className: 'page' },
+        h('div', { className: 'hero' },
+          h('div', { className: 'hero-icon' }, Icons.sparkles),
+          h('h1', null, h('span', { className: 'gradient-text' }, 'AI 简历助手')),
+          h('p', null, '智能优化简历 · 模拟面试实战 · 精准匹配岗位'),
+        ),
+        h('div', { className: 'stats-banner' },
+          h('div', { className: 'stat-item' }, h('h4', null, '10,000+'), h('p', null, '已帮助求职者')),
+          h('div', { className: 'stat-item' }, h('h4', null, '92%'), h('p', null, '面试邀约提升率')),
+          h('div', { className: 'stat-item' }, h('h4', null, '500+'), h('p', null, '合作企业岗位库')),
+        ),
+        h('div', { className: 'features-grid' },
+          features.map(f => h('div', { key: f.id, className: 'feature-card', onClick: () => onNavigate(f.id) },
+            h('div', { className: 'feature-icon', style: { background: f.color } }, f.icon),
+            h('div', { className: 'feature-body' }, h('h3', null, f.title), h('p', null, f.desc)),
+            h('div', { className: 'feature-arrow' }, Icons.arrowRight)
+          ))
+        )
+      );
+    };
+
+    // ====================================================================
+    // Page: Resume Optimizer
+    // ====================================================================
+    const ResumePage = ({ onNavigate }) => {
+      const [resume, setResume] = useState('');
+      const [jd, setJd] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [result, setResult] = useState(null);
+      const [showResult, setShowResult] = useState(false);
+      const [error, setError] = useState(null);
+      const [copied, setCopied] = useState(false);
+
+      const handleOptimize = async () => {
+        if (!resume.trim()) return;
+        setLoading(true);
+        setResult(null);
+        setShowResult(false);
+        setError(null);
+        try {
+          if (APIService.getMode() === 'api') {
+            const res = await APIService.optimizeResume(resume, jd);
+            setResult(res);
+          } else {
+            await new Promise(r => setTimeout(r, 1500));
+            setResult(simulateResumeOptimize(resume, jd));
+          }
+          setShowResult(true);
+        } catch(e) {
+          setError(e.message);
+          setResult(simulateResumeOptimize(resume, jd));
+          setShowResult(true);
+        }
+        setLoading(false);
+      };
+
+      const handleCopy = () => {
+        if (!result) return;
+        navigator.clipboard.writeText(result.optimized).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      };
+
+      return h('div', { className: 'page' },
+        h('h2', { style: { marginBottom: 8 } }, 'AI 简历优化'),
+        h('p', { style: { color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 } }, '粘贴你的简历和岗位描述，AI 会针对岗位要求优化简历内容'),
+        !showResult && [
+          h('div', { key: 'f1', style: { marginBottom: 16 } },
+            h('label', { className: 'label' }, '你的简历'),
+            h('textarea', { className: 'textarea', placeholder: '粘贴你的简历内容...\n包含教育背景、工作经历、项目经验、技能等', rows: 6, value: resume, onChange: e => setResume(e.target.value) }),
+          ),
+          h('div', { key: 'f2', style: { marginBottom: 20 } },
+            h('label', { className: 'label' }, '目标岗位描述（选填）'),
+            h('textarea', { className: 'textarea', placeholder: '粘贴岗位 JD，不填则做通用优化...', rows: 4, value: jd, onChange: e => setJd(e.target.value) }),
+            h('div', { className: 'hint' }, '填写 JD 可以让 AI 更精准地针对岗位要求优化'),
+          ),
+          h('button', { key: 'btn', className: 'btn btn-primary btn-block', onClick: handleOptimize, disabled: loading || !resume.trim() },
+            loading ? h('span', null, 'AI 优化中...') : h('span', null, '开始 AI 优化')),
+        ],
+        loading && h('div', { key: 'load', style: { textAlign: 'center', padding: '40px 0' } },
+          h('div', { style: { width: 48, height: 48, border: '3px solid #E2E8F0', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin 0.8s linear infinite' } }),
+          h('p', { style: { color: 'var(--text-secondary)' } }, 'AI 正在分析你的简历...'),
+        ),
+        result && showResult && h('div', { key: 'res', className: 'result-section' },
+          h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 } },
+            h('div', { style: { width: 64, height: 64, borderRadius: '50%', background: scoreColor(result.score) + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } },
+              h('span', { style: { fontSize: 22, fontWeight: 800, color: scoreColor(result.score) } }, result.score + '%')),
+            h('div', null, h('h3', null, '优化完成！'), h('p', { style: { color: 'var(--text-secondary)', fontSize: 13 } }, error ? 'API 出错，已切换为演示模式' : '根据岗位需求优化了简历内容'))
+          ),
+          error && h('div', { style: { background: '#FEE2E2', color: '#991B1B', padding: '8px 12px', borderRadius: 8, fontSize: 13, marginBottom: 12 } }, 'API 错误：' + error),
+          h('div', { className: 'card', style: { marginBottom: 16 } },
+            h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 } },
+              h('h3', { style: { fontSize: 15 } }, '优化后简历'),
+              h('button', { className: 'btn btn-sm btn-secondary', onClick: handleCopy }, copied ? '已复制' : '复制全文')),
+            h('div', { className: 'diff-view', style: { maxHeight: 400, overflowY: 'auto' } }, result.optimized)
+          ),
+          h('div', { className: 'card', style: { marginBottom: 16 } },
+            h('h3', { style: { marginBottom: 12, fontSize: 15 } }, '优化建议'),
+            result.suggestions.map((s, i) => h('div', { key: i, style: { display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 14, marginBottom: 4 } }, h('span', { style: { color: 'var(--primary)', flexShrink: 0 } }, '•'), h('span', null, s)))),
+          result.matchedKeywords && result.matchedKeywords.length > 0 && h('div', { className: 'card', style: { marginBottom: 16 } },
+            h('h3', { style: { marginBottom: 8, fontSize: 15 } }, '关键词匹配'),
+            h('div', { className: 'tag-group' },
+              result.matchedKeywords.map(k => h('span', { key: k, className: 'tag', style: { background: '#D1FAE5', color: '#065F46' } }, k)),
+              (result.missingKeywords || []).map(k => h('span', { key: k, className: 'tag', style: { background: '#FEE2E2', color: '#991B1B', textDecoration: 'line-through' } }, k)))),
+          h('div', { style: { display: 'flex', gap: 12 } },
+            h('button', { className: 'btn btn-secondary', style: { flex: 1 }, onClick: () => { setShowResult(false); setResult(null); setError(null); } }, '重新优化'),
+            h('button', { className: 'btn btn-primary', style: { flex: 1 }, onClick: () => onNavigate('interview') }, h('span', null, '去面试模拟'), Icons.arrowRight))
+        )
+      );
+    };
+
+    // ====================================================================
+    // Page: Interview
+    // ====================================================================
+    const InterviewPage = ({ onNavigate }) => {
+      const [step, setStep] = useState('setup');
+      const [position, setPosition] = useState('');
+      const [questions, setQuestions] = useState([]);
+      const [currentQ, setCurrentQ] = useState(0);
+      const [answer, setAnswer] = useState('');
+      const [messages, setMessages] = useState([]);
+      const [scores, setScores] = useState([]);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState(null);
+      const [totalScore, setTotalScore] = useState(0);
+      const chatEndRef = useRef(null);
+
+      const scrollToBottom = () => {
+        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      };
+
+      const startInterview = () => {
+        const pos = position || '通用';
+        const qs = (INTERVIEW_QUESTIONS[pos] || INTERVIEW_QUESTIONS['通用']).slice(0, 3);
+        setQuestions(qs);
+        setMessages([{ type: 'ai', text: '你好！欢迎来到模拟面试。我们将进行 3 轮问答，我会在每轮结束后给出评分反馈。\n\n**第 1 题：** ' + qs[0] }]);
+        setCurrentQ(0);
+        setScores([]);
+        setError(null);
+        setStep('interview');
+        scrollToBottom();
+      };
+
+      const submitAnswer = async () => {
+        if (!answer.trim()) return;
+        const newMsgs = [...messages, { type: 'user', text: answer }];
+        setMessages(newMsgs);
+        setLoading(true);
+        setError(null);
+
+        try {
+          let result;
+          if (APIService.getMode() === 'api') {
+            result = await APIService.evaluateAnswer(questions[currentQ], answer, position);
+          } else {
+            await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+            result = simulateInterviewScore(questions[currentQ], answer);
+          }
+          const newScores = [...scores, result.score];
+          setScores(newScores);
+
+          let fb = '';
+          if (result.strengths && result.strengths.length) fb += '**优点：**\n' + result.strengths.map(s => '  ✓ ' + s).join('\n') + '\n\n';
+          if (result.improvements && result.improvements.length) fb += '**改进建议：**\n' + result.improvements.map(s => '  💡 ' + s).join('\n') + '\n\n';
+          fb += '**评分：' + result.score + '/100**\n' + (result.comment || '');
+
+          if (currentQ < 2) {
+            const nextQ = currentQ + 1;
+            fb += '\n\n---\n\n**第 ' + (nextQ + 1) + ' 题：** ' + questions[nextQ];
+            setMessages(prev => [...prev, { type: 'ai', text: fb }]);
+            setCurrentQ(nextQ);
+          } else {
+            fb += '\n\n---\n\n🎉 面试结束！正在计算最终成绩...';
+            setMessages(prev => [...prev, { type: 'ai', text: fb }]);
+            const avg = Math.round(newScores.reduce((a, b) => a + b, 0) / newScores.length);
+            setTotalScore(avg);
+            setTimeout(() => setStep('done'), 800);
+          }
+        } catch(e) {
+          setError(e.message);
+          if (e.message === 'NO_API_KEY') {
+            setError('未配置 API Key，使用演示模式评分');
+            const result = simulateInterviewScore(questions[currentQ], answer);
+            const newScores = [...scores, result.score];
+            setScores(newScores);
+            let fb = '**演示模式评分：' + result.score + '/100**\n' + (result.comment || '');
+            if (currentQ < 2) {
+              fb += '\n\n---\n\n**第 ' + (currentQ + 2) + ' 题：** ' + questions[currentQ + 1];
+              setMessages(prev => [...prev, { type: 'ai', text: fb }]);
+              setCurrentQ(prev => prev + 1);
+            } else {
+              fb += '\n\n---\n\n🎉 面试结束！';
+              setMessages(prev => [...prev, { type: 'ai', text: fb }]);
+              const avg = Math.round(newScores.reduce((a, b) => a + b, 0) / newScores.length);
+              setTotalScore(avg);
+              setTimeout(() => setStep('done'), 800);
+            }
+          } else {
+            setMessages(prev => [...prev, { type: 'ai', text: '抱歉，AI 评分出错了：' + e.message + '\n\n请继续下一题。' }]);
+          }
+        }
+        setAnswer('');
+        setLoading(false);
+        scrollToBottom();
+      };
+
+      if (step === 'setup') {
+        const allPositions = Object.keys(INTERVIEW_QUESTIONS);
+        return h('div', { className: 'page' },
+          h('h2', { style: { marginBottom: 8 } }, 'AI 面试模拟'),
+          h('p', { style: { color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 } }, '选择岗位方向，AI 面试官会进行 3 轮面试并给出评分反馈'),
+          h('div', { style: { marginBottom: 16 } },
+            h('label', { className: 'label' }, '选择面试岗位'),
+            h('div', { className: 'tag-group' },
+              allPositions.map(p => h('span', { key: p, className: 'tag' + (position === p ? ' active' : ''), onClick: () => setPosition(position === p ? '' : p) }, p)))),
+          h('div', { className: 'card', style: { marginBottom: 20 } },
+            h('h3', { style: { fontSize: 15, marginBottom: 8 } }, '面试流程'),
+            h('div', { style: { fontSize: 14, color: 'var(--text-secondary)', lineHeight: 2 } },
+              h('div', null, '1. AI 面试官提问'),
+              h('div', null, '2. 你输入回答'),
+              h('div', null, '3. AI 即时评分 + 改进建议'),
+              h('div', null, '4. 共 3 轮，结束后生成综合报告'))),
+          h('button', { className: 'btn btn-primary btn-block', onClick: startInterview, disabled: !position }, '开始模拟面试'),
+        );
+      }
+
+      return h('div', { className: 'page' },
+        h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 } },
+          h('h2', { style: { fontSize: 18 } }, step === 'done' ? '面试结束' : '模拟面试'),
+          step !== 'done' && h('div', { style: { display: 'flex', gap: 4, alignItems: 'center' } },
+            [0,1,2].map(i => h('div', { key: i, style: { width: 28, height: 28, borderRadius: '50%', background: i < currentQ ? 'var(--success)' : i === currentQ ? 'var(--primary)' : '#E2E8F0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 } }, i < currentQ ? '✓' : i + 1)))),
+        error && h('div', { style: { background: '#FEF3C7', color: '#92400E', padding: '8px 12px', borderRadius: 8, fontSize: 13, marginBottom: 12 } }, error),
+        h('div', { className: 'chat-container', style: { maxHeight: step === 'done' ? 'calc(100vh - 400px)' : 'calc(100vh - 320px)', overflowY: 'auto', padding: '0 4px' } },
+          messages.map((m, i) => h('div', { key: i, className: 'chat-bubble ' + m.type, style: { whiteSpace: 'pre-wrap' } },
+            m.text.split('\n').map((line, j) => h('span', { key: j }, line, h('br'))))),
+          loading && h('div', { key: 'loading', className: 'chat-bubble ai' }, h('span', null, 'AI 正在分析你的回答'), h('span', { className: 'typing-dots' })),
+          h('div', { ref: chatEndRef })),
+        !loading && step === 'interview' && h('div', { style: { marginTop: 12 } },
+          h('textarea', { className: 'textarea', placeholder: '输入你的回答...', rows: 3, value: answer, onChange: e => setAnswer(e.target.value) }),
+          h('button', { className: 'btn btn-primary btn-block', style: { marginTop: 8 }, onClick: submitAnswer, disabled: !answer.trim() }, currentQ < 2 ? '提交回答' : '最后一道题')),
+        step === 'done' && h('div', { style: { marginTop: 16, textAlign: 'center' } },
+          h('div', { style: { fontSize: 48, marginBottom: 8 } }, totalScore >= 80 ? '🏆' : totalScore >= 60 ? '👍' : '💪'),
+          h('h2', { style: { marginBottom: 4 } }, '面试完成！'),
+          h('div', { style: { fontSize: 16, color: 'var(--text-secondary)', marginBottom: 4 } }, '综合评分：', h('span', { style: { fontSize: 24, fontWeight: 800, color: scoreColor(totalScore) } }, totalScore), '/100'),
+          h('div', { style: { fontSize: 14, color: 'var(--text-muted)', marginBottom: 20 } }, totalScore >= 80 ? '表现优秀！' : totalScore >= 60 ? '基础不错！' : '建议多练习'),
+          h('div', { style: { display: 'flex', gap: 12 } },
+            h('button', { className: 'btn btn-secondary', style: { flex: 1 }, onClick: () => { setStep('setup'); setMessages([]); setScores([]); setCurrentQ(0); setTotalScore(0); setError(null); } }, '重新面试'),
+            h('button', { className: 'btn btn-primary', style: { flex: 1 }, onClick: () => onNavigate('home') }, '返回首页')))
+      );
+    };
+
+    // ====================================================================
+    // Page: Match Analysis
+    // ====================================================================
+    const MatchPage = ({ onNavigate }) => {
+      const [resume, setResume] = useState('');
+      const [jd, setJd] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [result, setResult] = useState(null);
+      const [showResult, setShowResult] = useState(false);
+      const [error, setError] = useState(null);
+      const circumference = 2 * Math.PI * 44;
+
+      const handleMatch = async () => {
+        if (!resume.trim() || !jd.trim()) return;
+        setLoading(true);
+        setResult(null);
+        setShowResult(false);
+        setError(null);
+        try {
+          if (APIService.getMode() === 'api') {
+            const res = await APIService.matchAnalysis(resume, jd);
+            setResult(res);
+          } else {
+            await new Promise(r => setTimeout(r, 1500 + Math.random() * 1000));
+            setResult(simulateMatchAnalysis(resume, jd));
+          }
+          setShowResult(true);
+        } catch(e) {
+          setError(e.message);
+          setResult(simulateMatchAnalysis(resume, jd));
+          setShowResult(true);
+        }
+        setLoading(false);
+      };
+
+      return h('div', { className: 'page' },
+        h('h2', { style: { marginBottom: 8 } }, '岗位匹配度分析'),
+        h('p', { style: { color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 } }, 'AI 深度分析你的简历与目标岗位的匹配程度'),
+        !showResult && [
+          h('div', { key: 'f1', style: { marginBottom: 16 } },
+            h('label', { className: 'label' }, '你的简历'),
+            h('textarea', { className: 'textarea', placeholder: '粘贴你的简历内容...', rows: 5, value: resume, onChange: e => setResume(e.target.value) })),
+          h('div', { key: 'f2', style: { marginBottom: 20 } },
+            h('label', { className: 'label' }, '目标岗位描述'),
+            h('textarea', { className: 'textarea', placeholder: '粘贴岗位 JD...', rows: 5, value: jd, onChange: e => setJd(e.target.value) })),
+          h('button', { key: 'btn', className: 'btn btn-primary btn-block', onClick: handleMatch, disabled: loading || !resume.trim() || !jd.trim() },
+            loading ? 'AI 分析中...' : '开始分析匹配度'),
+        ],
+        loading && h('div', { key: 'load', style: { textAlign: 'center', padding: '40px 0' } },
+          h('div', { style: { width: 48, height: 48, border: '3px solid #E2E8F0', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin 0.8s linear infinite' } }),
+          h('p', { style: { color: 'var(--text-secondary)' } }, 'AI 正在深度分析匹配度...')),
+        result && showResult && h('div', { key: 'res', className: 'result-section' },
+          error && h('div', { style: { background: '#FEE2E2', color: '#991B1B', padding: '8px 12px', borderRadius: 8, fontSize: 13, marginBottom: 12 } }, 'API 错误：' + error),
+          h('div', { className: 'card', style: { textAlign: 'center', padding: '28px 20px', marginBottom: 16 } },
+            h('div', { className: 'score-ring' },
+              h('svg', { width: 120, height: 120, viewBox: '0 0 100 100' },
+                h('circle', { className: 'bg', cx: 50, cy: 50, r: 44 }),
+                h('circle', { className: 'fg', cx: 50, cy: 50, r: 44, stroke: scoreColor(result.totalScore), strokeDasharray: circumference, strokeDashoffset: circumference * (1 - result.totalScore / 100) })),
+              h('div', { className: 'score-value', style: { color: scoreColor(result.totalScore) } }, result.totalScore + '%'),
+              h('div', { className: 'score-label' }, '综合匹配度')),
+            h('div', { style: { marginTop: 12, fontSize: 14, color: 'var(--text-secondary)' } }, result.totalScore >= 80 ? '匹配度很高！' : result.totalScore >= 60 ? '有基础，还有提升空间' : '需要较多优化')),
+          h('div', { className: 'card', style: { marginBottom: 16 } },
+            h('h3', { style: { marginBottom: 12, fontSize: 15 } }, '各维度评分'),
+            Object.entries(result.dimensions || {}).map(([key, dim]) =>
+              h('div', { key, className: 'dimension-item' },
+                h('div', { className: 'dim-label' }, key),
+                h('div', { className: 'dim-bar' }, h('div', { className: 'dim-fill', style: { width: (dim.score || 0) + '%', background: scoreColor(dim.score || 0) } })),
+                h('div', { className: 'dim-score', style: { color: scoreColor(dim.score || 0) } }, dim.score)))),
+          h('div', { className: 'card' },
+            h('h3', { style: { marginBottom: 12, fontSize: 15 } }, '改进建议'),
+            (result.suggestions || []).map((s, i) => h('div', { key: i, style: { display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 14, marginBottom: 8 } },
+              h('span', { style: { color: scoreColor(result.totalScore), flexShrink: 0 } }, '•'), h('span', null, s)))),
+          h('div', { style: { display: 'flex', gap: 12, marginTop: 16 } },
+            h('button', { className: 'btn btn-secondary', style: { flex: 1 }, onClick: () => { setShowResult(false); setResult(null); setError(null); } }, '重新分析'),
+            h('button', { className: 'btn btn-primary', style: { flex: 1 }, onClick: () => onNavigate('resume') }, '优化简历')))
+      );
+    };
+
+    // ====================================================================
+    // Page: Settings
+    // ====================================================================
+    const SettingsPage = () => {
+      const [apiKey, setApiKey] = useState('');
+      const [saved, setSaved] = useState(false);
+      const [status, setStatus] = useState('');
+
+      useEffect(() => {
+        const key = APIService.getKey();
+        if (key) { setApiKey(key); setStatus('已配置'); }
+        else setStatus('未配置');
+      }, []);
+
+      const handleSave = () => {
+        APIService.setKey(apiKey);
+        setSaved(true);
+        setStatus(apiKey ? '已配置' : '未配置');
+        setTimeout(() => setSaved(false), 2000);
+      };
+
+      const handleClear = () => {
+        setApiKey('');
+        APIService.clearKey();
+        setSaved(true);
+        setStatus('未配置');
+        setTimeout(() => setSaved(false), 2000);
+      };
+
+      return h('div', { className: 'page' },
+        h('h2', { style: { marginBottom: 8 } }, '设置'),
+        h('p', { style: { color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 } }, '配置 DeepSeek API Key，开启真实 AI 功能'),
+
+        h('div', { className: 'card', style: { marginBottom: 16 } },
+          h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 } },
+            h('span', { className: 'badge ' + (status === '已配置' ? 'badge-success' : 'badge-warning') }, status),
+            h('span', { style: { fontSize: 14, color: 'var(--text-secondary)' } }, 'DeepSeek API'),
+          ),
+          APIService.getMode() === 'api' && h('div', { style: { fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 } }, '当前使用真实 AI 模型'),
+          APIService.getMode() === 'demo' && h('div', { style: { fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 } }, '当前为演示模式，所有功能使用模拟数据'),
+
+          h('input', { className: 'input', type: 'password', placeholder: '输入 DeepSeek API Key (sk-...)', value: apiKey, onChange: e => setApiKey(e.target.value), style: { marginBottom: 12 } }),
+          h('div', { style: { display: 'flex', gap: 12 } },
+            h('button', { className: 'btn btn-primary', style: { flex: 1 }, onClick: handleSave }, saved ? '已保存 ✓' : (apiKey ? '保存并启用' : '清除配置')),
+            apiKey && h('button', { className: 'btn btn-secondary', onClick: handleClear }, '清除')),
+        ),
+
+        h('div', { className: 'card', style: { marginBottom: 16 } },
+          h('h3', { style: { fontSize: 15, marginBottom: 12 } }, '如何获取 API Key？'),
+          h('ol', { style: { fontSize: 14, color: 'var(--text-secondary)', lineHeight: 2, paddingLeft: 20 } },
+            h('li', null, '打开 platform.deepseek.com'),
+            h('li', null, '注册/登录账号'),
+            h('li', null, '进入 API Keys 页面创建 Key'),
+            h('li', null, '复制 Key 粘贴到上面输入框'),
+            h('li', null, '点击保存 → 所有功能自动使用真实 AI')),
+        ),
+
+        h('div', { className: 'card' },
+          h('h3', { style: { fontSize: 15, marginBottom: 12 } }, '费用参考'),
+          h('div', { style: { fontSize: 14, color: 'var(--text-secondary)', lineHeight: 2 } },
+            h('div', null, 'DeepSeek 价格：约 1元/百万 token'),
+            h('div', null, '一次简历优化 ≈ 0.01元'),
+            h('div', null, '注册即送 500 万 token（约 5元额度）')),
+        )
+      );
+    };
+
+    // ====================================================================
+    // Bottom Navigation
+    // ====================================================================
+    const BottomNav = ({ active, onNavigate }) => {
+      const items = [
+        { id: 'home', label: '首页', icon: Icons.home },
+        { id: 'resume', label: '简历优化', icon: Icons.fileText },
+        { id: 'interview', label: '面试', icon: Icons.messageSquare },
+        { id: 'match', label: '匹配度', icon: Icons.target },
+        { id: 'settings', label: '设置', icon: Icons.settings },
+      ];
+      return h('div', { className: 'bottom-nav' },
+        items.map(item => h('button', { key: item.id, className: 'nav-item' + (active === item.id ? ' active' : ''), onClick: () => onNavigate(item.id) }, item.icon, h('span', null, item.label))));
+    };
+
+    // ====================================================================
+    // App
+    // ====================================================================
+    const App = () => {
+      const [page, setPage] = useState('home');
+      const [toastMsg, setToastMsg] = useState(null);
+
+      const showToast = useCallback((msg) => setToastMsg(msg), []);
+
+      const goTo = useCallback((p) => {
+        setPage(p);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, []);
+
+      const renderPage = () => {
+        switch (page) {
+          case 'home': return h(HomePage, { onNavigate: goTo });
+          case 'resume': return h(ResumePage, { onNavigate: goTo });
+          case 'interview': return h(InterviewPage, { onNavigate: goTo });
+          case 'match': return h(MatchPage, { onNavigate: goTo });
+          case 'settings': return h(SettingsPage, null);
+          default: return h(HomePage, { onNavigate: goTo });
+        }
+      };
+
+      return h(AppContext.Provider, { value: { toast: showToast } },
+        h('div', { style: { minHeight: '100vh', background: 'var(--bg)' } },
+          toastMsg && h(Toast, { message: toastMsg, onClose: () => setToastMsg(null) }),
+          renderPage(),
+          h(BottomNav, { active: page, onNavigate: goTo }),
+        )
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+    window.__REACT_LOADED = true;
+    }
+  </script>
+</body>
+</html>
